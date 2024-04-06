@@ -5,7 +5,7 @@
 import UIKit
 
 // The Task model
-struct Task {
+struct Task : Codable{
 
     // The task's title
     var title: String
@@ -44,10 +44,10 @@ struct Task {
 
     // The date the task was created
     // This property is set as the current date whenever the task is initially created.
-    let createdDate: Date = Date()
+    var createdDate: Date = Date()
 
     // An id (Universal Unique Identifier) used to identify a task.
-    let id: String = UUID().uuidString
+    var id: String = UUID().uuidString
 }
 
 // MARK: - Task + UserDefaults
@@ -58,19 +58,34 @@ extension Task {
     static func save(_ tasks: [Task]) {
 
         // TODO: Save the array of tasks
+        let defaults = UserDefaults.standard
+        let encodedData = try! JSONEncoder().encode(tasks)
+        defaults.set(encodedData, forKey: "task" )
     }
 
     // Retrieve an array of saved tasks from UserDefaults.
     static func getTasks() -> [Task] {
         
         // TODO: Get the array of saved tasks from UserDefaults
+        let defaults = UserDefaults.standard
+        if let decodedData = defaults.data(forKey: "task"){
+            let decodedTasks = try! JSONDecoder().decode([Task].self,from: decodedData)
+            return decodedTasks
+        }
 
         return [] // 👈 replace with returned saved tasks
     }
 
     // Add a new task or update an existing task with the current task.
     func save() {
-
         // TODO: Save the current task
+        let allTasks = Task.getTasks()
+        var updatedTasks = allTasks.filter { $0.id != self.id }
+        updatedTasks.append(self)
+        Task.save(updatedTasks)
+        
     }
 }
+
+
+
